@@ -28,6 +28,7 @@ import { StatsModal } from './components/StatsModal';
 import { SettingsModal } from './components/SettingsModal';
 import { DateTimeHeader } from './components/DateTimeHeader';
 import { Confetti } from './components/Confetti';
+import { BackgroundOrbs } from './components/BackgroundOrbs';
 
 function App() {
   const { isDark, toggleTheme } = useTheme();
@@ -140,6 +141,9 @@ function App() {
 
   return (
     <div className="min-h-screen flex items-start justify-center px-4 py-8 sm:py-12 md:py-16">
+      {/* Background Depth Layer - orbs for glass to blur */}
+      <BackgroundOrbs isDark={isDark} />
+
       {/* Confetti for milestones */}
       <Confetti isActive={justHitMilestone !== null} onComplete={clearMilestone} />
 
@@ -174,16 +178,17 @@ function App() {
         totalCount={todos.length}
       />
 
-      {/* Main Container */}
+      {/* Main Container - Glass Panel */}
       <div
         className={`
           relative w-full max-w-lg
           rounded-2xl
           border
+          glass-panel
           transition-all duration-300
           ${isDark
-            ? 'bg-void-800/80 border-void-700 shadow-[0_0_40px_rgba(0,0,0,0.5)]'
-            : 'bg-white border-void-200 shadow-xl'
+            ? 'bg-void-900/70 border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]'
+            : 'bg-white/70 border-void-200/50 shadow-[0_8px_32px_rgba(0,0,0,0.1)]'
           }
         `}
       >
@@ -226,7 +231,7 @@ function App() {
         </div>
 
         {/* Divider */}
-        <div className={`mx-4 sm:mx-6 h-px ${isDark ? 'bg-void-700' : 'bg-void-200'}`} />
+        <div className={`mx-4 sm:mx-6 h-px ${isDark ? 'bg-white/10' : 'bg-void-300/30'}`} />
 
         {/* Filter Toggle */}
         {rootTodos.length > 0 && (
@@ -295,10 +300,10 @@ function App() {
           className={`
             w-full px-4 sm:px-6 py-4 text-xs text-center
             border-t cursor-pointer
-            transition-colors
+            transition-colors rounded-b-2xl
             ${isDark
-              ? 'border-void-700 text-void-500 hover:text-void-400 hover:bg-void-800/50'
-              : 'border-void-200 text-void-400 hover:text-void-500 hover:bg-void-50'
+              ? 'border-white/5 text-void-500 hover:text-void-400 hover:bg-white/5'
+              : 'border-void-200/50 text-void-400 hover:text-void-500 hover:bg-black/5'
             }
           `}
         >
@@ -327,10 +332,10 @@ function App() {
           className={`
             absolute bottom-4 right-4 p-2.5 rounded-full
             transition-all duration-200 cursor-pointer
-            shadow-md
+            glass-panel
             ${isDark
-              ? 'bg-void-700 text-void-400 hover:text-void-200 hover:bg-void-600'
-              : 'bg-void-100 text-void-500 hover:text-void-700 hover:bg-void-200'
+              ? 'bg-void-800/60 text-void-400 hover:text-void-200 hover:bg-void-700/60 border border-white/10 shadow-lg'
+              : 'bg-white/60 text-void-500 hover:text-void-700 hover:bg-white/80 border border-void-200/50 shadow-lg'
             }
           `}
         >

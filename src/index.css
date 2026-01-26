@@ -34,6 +34,12 @@
   /* Typography */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --letter-spacing-tight: -0.025em;
+
+  /* Glass effect variables */
+  --glass-blur: 16px;
+  --glass-blur-heavy: 24px;
+  --glass-border-light: rgba(255, 255, 255, 0.1);
+  --glass-border-dark: rgba(255, 255, 255, 0.05);
 }
 
 
@@ -306,6 +312,92 @@ body.dark ::-webkit-scrollbar-thumb:hover {
 }
 
 /* ===========================================
+   BACKGROUND ORB ANIMATIONS
+   =========================================== */
+
+/* Slow drift animation for background orbs */
+@keyframes orb-drift-1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(-30px, 20px) scale(1.05);
+  }
+  50% {
+    transform: translate(-10px, 40px) scale(0.95);
+  }
+  75% {
+    transform: translate(20px, 10px) scale(1.02);
+  }
+}
+
+@keyframes orb-drift-2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(40px, -20px) scale(1.03);
+  }
+  66% {
+    transform: translate(20px, 30px) scale(0.97);
+  }
+}
+
+@keyframes orb-drift-3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-25px, -15px) scale(1.04);
+  }
+}
+
+.orb-drift-1 {
+  animation: orb-drift-1 60s ease-in-out infinite;
+}
+
+.orb-drift-2 {
+  animation: orb-drift-2 75s ease-in-out infinite;
+}
+
+.orb-drift-3 {
+  animation: orb-drift-3 90s ease-in-out infinite;
+}
+
+/* ===========================================
+   GLASS EFFECTS
+   =========================================== */
+
+/* Radial gradient utility for orbs */
+.bg-gradient-radial {
+  background: radial-gradient(circle at center, var(--tw-gradient-stops));
+}
+
+/* Glass panel base styles */
+.glass-panel {
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.glass-panel-heavy {
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+}
+
+/* Fallback for browsers without backdrop-filter support */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-panel,
+  .glass-panel-heavy {
+    background-color: rgba(20, 20, 20, 0.95) !important;
+  }
+
+  body:not(.dark) .glass-panel,
+  body:not(.dark) .glass-panel-heavy {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
+}
+
+/* ===========================================
    MOBILE RESPONSIVE
    =========================================== */
 
@@ -345,7 +437,10 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   .modal-backdrop,
   .modal-content,
   .empty-state-icon,
-  .confetti-particle {
+  .confetti-particle,
+  .orb-drift-1,
+  .orb-drift-2,
+  .orb-drift-3 {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation: none !important;
