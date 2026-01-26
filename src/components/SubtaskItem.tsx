@@ -57,7 +57,7 @@ export function SubtaskItem({
   return (
     <li
       className={`
-        group flex items-center gap-2 px-2 py-2 ml-8 rounded-lg
+        group flex items-center gap-2 px-2 py-2 ml-8 mb-2 rounded-lg
         transition-all duration-200
         border
         ${justCompleted ? 'todo-item-complete' : ''}
@@ -110,8 +110,8 @@ export function SubtaskItem({
             className={`
               w-full px-2 py-1 rounded text-sm outline-none
               ${isDark
-                ? 'bg-void-700 border-2 border-ember-500 text-void-100'
-                : 'bg-white border-2 border-ember-600 text-void-900'
+                ? 'bg-void-700 border-2 border-anthropic-blue text-void-100'
+                : 'bg-white border-2 border-anthropic-blue text-void-900'
               }
             `}
           />

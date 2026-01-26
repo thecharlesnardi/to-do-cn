@@ -32,13 +32,20 @@ export function DateTimeHeader({ timezone, use24Hour, isDark }: DateTimeHeaderPr
     return () => clearTimeout(initialTimeout);
   }, []);
 
-  // Format time based on settings
-  const formattedTime = currentTime.toLocaleTimeString('en-US', {
+  // Format time digits only (without AM/PM)
+  const timeDigits = currentTime.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: !use24Hour,
     timeZone: timezone,
-  });
+  }).replace(/\s?(AM|PM)$/i, '');
+
+  // Get AM/PM period separately (only for 12-hour format)
+  const period = use24Hour ? '' : currentTime.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    hour12: true,
+    timeZone: timezone,
+  }).slice(-2);
 
   // Format date
   const formattedDate = currentTime.toLocaleDateString('en-US', {
@@ -50,14 +57,21 @@ export function DateTimeHeader({ timezone, use24Hour, isDark }: DateTimeHeaderPr
 
   return (
     <div className="text-right">
-      <div
-        className={`
-          text-6xl sm:text-7xl font-bold tracking-tight
-          tabular-nums
-          ${isDark ? 'text-void-50' : 'text-void-900'}
-        `}
-      >
-        {formattedTime}
+      <div className="flex items-baseline justify-end gap-1">
+        <span
+          className={`
+            text-5xl sm:text-6xl font-bold tracking-tight
+            tabular-nums
+            ${isDark ? 'text-void-50' : 'text-void-900'}
+          `}
+        >
+          {timeDigits}
+        </span>
+        {period && (
+          <span className="text-xs font-semibold text-anthropic-red">
+            {period}
+          </span>
+        )}
       </div>
       <div
         className={`

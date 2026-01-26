@@ -31,13 +31,18 @@
   --color-success: #22c55e;
   --color-danger: #ef4444;
 
+  /* Anthropic-inspired accents */
+  --color-anthropic-red: #D97757;
+  --color-anthropic-blue: #5B8DEF;
+  --color-anthropic-blue-glow: rgba(91, 141, 239, 0.3);
+
   /* Typography */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --letter-spacing-tight: -0.025em;
 
   /* Glass effect variables */
-  --glass-blur: 16px;
-  --glass-blur-heavy: 24px;
+  --glass-blur: 20px;
+  --glass-blur-heavy: 32px;
   --glass-border-light: rgba(255, 255, 255, 0.1);
   --glass-border-dark: rgba(255, 255, 255, 0.05);
 }

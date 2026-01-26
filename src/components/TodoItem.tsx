@@ -291,8 +291,8 @@ export function TodoItem({
                 w-full px-3 py-1.5 rounded-md
                 text-base outline-none
                 ${isDark
-                  ? 'bg-void-700 border-2 border-ember-500 text-void-100'
-                  : 'bg-white border-2 border-ember-600 text-void-900'
+                  ? 'bg-void-700 border-2 border-anthropic-blue text-void-100'
+                  : 'bg-white border-2 border-anthropic-blue text-void-900'
                 }
               `}
             />
@@ -461,8 +461,8 @@ export function TodoItem({
             className={`
               flex-1 px-3 py-1.5 rounded-md text-sm outline-none
               ${isDark
-                ? 'bg-void-700 border-2 border-ember-500/50 text-void-100 placeholder-void-500'
-                : 'bg-white border-2 border-ember-600/50 text-void-900 placeholder-void-400'
+                ? 'bg-void-700 border-2 border-anthropic-blue/50 text-void-100 placeholder-void-500'
+                : 'bg-white border-2 border-anthropic-blue/50 text-void-900 placeholder-void-400'
               }
             `}
           />
@@ -498,7 +498,7 @@ export function TodoItem({
 
       {/* Subtasks list */}
       {isExpanded && hasSubtasks && (
-        <ul className="pb-2">
+        <ul className="pb-2 space-y-2">
           {subtasks.map(subtask => (
             <SubtaskItem
               key={subtask.id}

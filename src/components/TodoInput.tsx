@@ -64,8 +64,8 @@ export function TodoInput({ onAdd, isDark, categories }: TodoInputProps) {
             transition-all duration-200
             outline-none
             ${isDark
-              ? 'bg-void-800 border border-void-600 text-void-100 placeholder:text-void-500 focus:border-ember-500'
-              : 'bg-white border border-void-200 text-void-900 placeholder:text-void-400 focus:border-ember-600'
+              ? 'bg-void-800 border border-void-600 text-void-100 placeholder:text-void-500 focus:border-anthropic-blue'
+              : 'bg-white border border-void-200 text-void-900 placeholder:text-void-400 focus:border-anthropic-blue'
             }
           `}
         />

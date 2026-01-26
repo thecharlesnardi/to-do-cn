@@ -187,8 +187,8 @@ function App() {
           glass-panel
           transition-all duration-300
           ${isDark
-            ? 'bg-void-900/70 border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]'
-            : 'bg-white/70 border-void-200/50 shadow-[0_8px_32px_rgba(0,0,0,0.1)]'
+            ? 'bg-void-900/60 border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]'
+            : 'bg-white/60 border-void-200/50 shadow-[0_8px_32px_rgba(0,0,0,0.1)]'
           }
         `}
       >
@@ -330,7 +330,7 @@ function App() {
           onClick={() => setShowSettingsModal(true)}
           aria-label="Settings"
           className={`
-            absolute bottom-4 right-4 p-2.5 rounded-full
+            absolute bottom-14 right-4 p-2.5 rounded-full
             transition-all duration-200 cursor-pointer
             glass-panel
             ${isDark
