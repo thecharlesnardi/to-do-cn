@@ -155,6 +155,7 @@ export function TodoInput({ onAdd, isDark, categories }: TodoInputProps) {
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               min={today}
+              style={isDark ? { colorScheme: 'dark' } : undefined}
               className={`
                 px-3 py-1.5 rounded-md text-sm
                 cursor-pointer outline-none
