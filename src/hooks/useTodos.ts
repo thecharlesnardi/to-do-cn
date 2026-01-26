@@ -8,21 +8,38 @@ export interface Todo {
   id: number;
   text: string;
   completed: boolean;
+  isToday?: boolean;
+  todayDate?: string; // Track when it was marked for today
 }
 
 const STORAGE_KEY = 'todos-react';
+
+/**
+ * Get today's date as YYYY-MM-DD string
+ */
+function getToday(): string {
+  return new Date().toISOString().split('T')[0];
+}
 
 /**
  * Custom hook for managing todos with localStorage persistence
  * Provides CRUD operations: add, toggle, update, delete, reorder
  */
 export function useTodos() {
-  // Initialize from localStorage
+  // Initialize from localStorage, clearing old "today" flags
   const [todos, setTodos] = useState<Todo[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed: Todo[] = JSON.parse(saved);
+        const today = getToday();
+        // Clear isToday flag for items marked on a previous day
+        return parsed.map(todo => {
+          if (todo.isToday && todo.todayDate !== today) {
+            return { ...todo, isToday: false, todayDate: undefined };
+          }
+          return todo;
+        });
       } catch {
         return [];
       }
@@ -82,6 +99,27 @@ export function useTodos() {
     });
   };
 
+  // Toggle "today" flag for a todo
+  const toggleToday = (id: number) => {
+    const today = getToday();
+    setTodos(prev =>
+      prev.map(todo =>
+        todo.id === id
+          ? {
+              ...todo,
+              isToday: !todo.isToday,
+              todayDate: !todo.isToday ? today : undefined,
+            }
+          : todo
+      )
+    );
+  };
+
+  // Clear all completed todos
+  const clearCompleted = () => {
+    setTodos(prev => prev.filter(todo => !todo.completed));
+  };
+
   return {
     todos,
     addTodo,
@@ -89,5 +127,7 @@ export function useTodos() {
     updateTodo,
     deleteTodo,
     reorderTodos,
+    toggleToday,
+    clearCompleted,
   };
 }

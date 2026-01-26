@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Check, Pencil, Trash, FloppyDisk, X, DotsSixVertical } from '@phosphor-icons/react';
+import { Pencil, Trash, FloppyDisk, X, DotsSixVertical, Star } from '@phosphor-icons/react';
 import type { Todo } from '../hooks/useTodos';
 
 interface TodoItemProps {
   todo: Todo;
   onToggle: (id: number) => void;
+  onToggleToday: (id: number) => void;
   onUpdate: (id: number, text: string) => void;
   onDelete: (id: number) => void;
   isDark: boolean;
+  isNew?: boolean;
 }
 
 /**
@@ -19,9 +21,30 @@ interface TodoItemProps {
  * - Inline editing
  * - Delete with hover reveal
  */
-export function TodoItem({ todo, onToggle, onUpdate, onDelete, isDark }: TodoItemProps) {
+export function TodoItem({ todo, onToggle, onToggleToday, onUpdate, onDelete, isDark, isNew }: TodoItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(todo.text);
+  const [justCompleted, setJustCompleted] = useState(false);
+  const [showEntryAnimation, setShowEntryAnimation] = useState(isNew);
+  const prevCompletedRef = useRef(todo.completed);
+
+  // Track when task goes from incomplete to complete
+  useEffect(() => {
+    if (todo.completed && !prevCompletedRef.current) {
+      setJustCompleted(true);
+      const timer = setTimeout(() => setJustCompleted(false), 300);
+      return () => clearTimeout(timer);
+    }
+    prevCompletedRef.current = todo.completed;
+  }, [todo.completed]);
+
+  // Clear entry animation after it plays
+  useEffect(() => {
+    if (showEntryAnimation) {
+      const timer = setTimeout(() => setShowEntryAnimation(false), 250);
+      return () => clearTimeout(timer);
+    }
+  }, [showEntryAnimation]);
 
   // Sortable hook from dnd-kit
   const {
@@ -63,6 +86,8 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete, isDark }: TodoIte
       className={`
         group flex items-center gap-2 px-2 py-3 rounded-lg
         transition-all duration-200
+        ${showEntryAnimation ? 'todo-item-enter' : ''}
+        ${justCompleted ? 'todo-item-complete' : ''}
         ${isDragging
           ? isDark
             ? 'bg-void-700 shadow-lg shadow-ember-500/10 opacity-90 scale-[1.02]'
@@ -91,7 +116,7 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete, isDark }: TodoIte
         <DotsSixVertical size={20} weight="bold" />
       </button>
 
-      {/* Custom Checkbox */}
+      {/* Custom Checkbox with animated checkmark */}
       <button
         onClick={() => onToggle(todo.id)}
         aria-label={todo.completed ? 'Mark as incomplete' : 'Mark as complete'}
@@ -100,9 +125,7 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete, isDark }: TodoIte
           border-2 transition-all duration-200
           cursor-pointer
           ${todo.completed
-            ? isDark
-              ? 'bg-ember-500 border-ember-500'
-              : 'bg-ember-600 border-ember-600'
+            ? `${justCompleted ? 'checkbox-animate' : ''} ${isDark ? 'bg-ember-500 border-ember-500' : 'bg-ember-600 border-ember-600'}`
             : isDark
               ? 'border-void-500 hover:border-ember-500'
               : 'border-void-300 hover:border-ember-600'
@@ -110,12 +133,39 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete, isDark }: TodoIte
         `}
       >
         {todo.completed && (
-          <Check
-            size={16}
-            weight="bold"
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white"
-          />
+          <svg
+            viewBox="0 0 24 24"
+            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 checkmark-svg ${justCompleted ? 'animate' : ''}`}
+            fill="none"
+            stroke="white"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={!justCompleted ? { strokeDashoffset: 0 } : undefined}
+          >
+            <polyline points="4 12 10 18 20 6" />
+          </svg>
         )}
+      </button>
+
+      {/* Today Star Button */}
+      <button
+        onClick={() => onToggleToday(todo.id)}
+        aria-label={todo.isToday ? 'Remove from Today' : 'Add to Today'}
+        className={`
+          p-1 rounded transition-all duration-200 cursor-pointer
+          ${todo.isToday
+            ? isDark
+              ? 'text-ember-500 hover:text-ember-400'
+              : 'text-ember-600 hover:text-ember-500'
+            : isDark
+              ? 'text-void-600 hover:text-ember-500 opacity-0 group-hover:opacity-100'
+              : 'text-void-300 hover:text-ember-600 opacity-0 group-hover:opacity-100'
+          }
+          ${todo.isToday ? 'opacity-100' : ''}
+        `}
+      >
+        <Star size={18} weight={todo.isToday ? 'fill' : 'regular'} />
       </button>
 
       {/* Todo Text or Edit Input */}
