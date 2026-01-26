@@ -20,27 +20,28 @@ import { useCategories } from './hooks/useCategories';
 import { useStats } from './hooks/useStats';
 import { useSettings } from './hooks/useSettings';
 import { useSound, triggerHaptic } from './hooks/useSound';
-import { ThemePicker } from './components/ThemePicker';
+import { ThemeToggle } from './components/ThemeToggle';
 import { TodoInput } from './components/TodoInput';
 import { TodoItem } from './components/TodoItem';
 import { TodoFilters } from './components/TodoFilters';
 import { EmptyState } from './components/EmptyState';
 import { StatsModal } from './components/StatsModal';
 import { SettingsModal } from './components/SettingsModal';
+import { DateTimeHeader } from './components/DateTimeHeader';
 import { Confetti } from './components/Confetti';
 
 function App() {
-  const { isDark, themeName, setTheme, themes } = useTheme();
-  const { todos, addTodo, toggleTodo, updateTodo, deleteTodo, reorderTodos, toggleToday, clearCompleted } = useTodos();
+  const { isDark, toggleTheme } = useTheme();
+  const { todos, addTodo, toggleTodo, updateTodo, deleteTodo, reorderTodos, toggleToday, clearCompleted, clearAllTodos, addSubtask, toggleSubtask, deleteSubtask, getSubtasks } = useTodos();
   const { categories, getCategoryColor } = useCategories();
   const { stats, completedToday, completedThisWeek, recordCompletion, justHitMilestone, clearMilestone, resetStats } = useStats();
-  const { settings, toggleSound } = useSettings();
+  const { settings, toggleSound, setTimezone, toggleTimeFormat } = useSettings();
   const { playComplete } = useSound(settings.soundEnabled);
 
   const [newTodoId, setNewTodoId] = useState<number | null>(null);
-  const [filter, setFilter] = useState<'today' | 'all'>(() => {
+  const [filter, setFilter] = useState<'today' | 'later'>(() => {
     const saved = localStorage.getItem('todo-filter');
-    return (saved === 'all' || saved === 'today') ? saved : 'today';
+    return (saved === 'later' || saved === 'today') ? saved : 'today';
   });
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [hasEverHadTasks, setHasEverHadTasks] = useState(() => {
@@ -75,23 +76,20 @@ function App() {
     localStorage.setItem('todo-filter', filter);
   }, [filter]);
 
+  // Filter to root todos only (no parentId) for main list
+  const rootTodos = todos.filter(t => !t.parentId);
+
   // Compute filtered and display todos
-  const todayTodos = todos.filter(t => t.isToday);
+  const todayTodos = rootTodos.filter(t => t.isToday);
+  const laterTodos = rootTodos.filter(t => !t.isToday);
 
   // Apply both view filter and category filter
-  let filteredTodos = filter === 'today' ? todayTodos : todos;
+  let filteredTodos = filter === 'today' ? todayTodos : laterTodos;
   if (categoryFilter) {
     filteredTodos = filteredTodos.filter(t => t.category === categoryFilter);
   }
 
   const completedTodos = todos.filter(t => t.completed);
-
-  // Format today's date for display
-  const formattedDate = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
-  });
 
   // Track when user has added tasks (for empty state context)
   useEffect(() => {
@@ -165,9 +163,15 @@ function App() {
         isDark={isDark}
         soundEnabled={settings.soundEnabled}
         onSoundToggle={toggleSound}
+        timezone={settings.timezone}
+        onTimezoneChange={setTimezone}
+        use24Hour={settings.use24Hour}
+        onTimeFormatToggle={toggleTimeFormat}
         onClearCompleted={handleClearCompleted}
+        onClearAllTasks={clearAllTodos}
         onResetStats={handleResetStats}
         completedCount={completedTodos.length}
+        totalCount={todos.length}
       />
 
       {/* Main Container */}
@@ -183,30 +187,28 @@ function App() {
           }
         `}
       >
+        {/* Date/Time Header */}
+        <DateTimeHeader
+          timezone={settings.timezone}
+          use24Hour={settings.use24Hour}
+          isDark={isDark}
+        />
+
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 pb-0">
-          <div>
-            <h1
-              className={`
-                text-xl sm:text-2xl font-semibold tracking-tight
-                ${isDark ? 'text-void-50' : 'text-void-900'}
-              `}
-            >
-              Tasks
-            </h1>
-            <p
-              className={`
-                text-sm mt-1
-                ${isDark ? 'text-void-400' : 'text-void-500'}
-              `}
-            >
-              {filter === 'today'
-                ? formattedDate
-                : todos.length === 0
-                  ? 'Start your day'
-                  : `${todos.filter(t => !t.completed).length} remaining`}
-            </p>
-          </div>
+        <div className="flex items-center justify-between px-4 sm:px-6 pb-0">
+          <h1
+            className={`
+              text-xl sm:text-2xl font-semibold tracking-tight
+              ${isDark ? 'text-void-50' : 'text-void-900'}
+            `}
+          >
+            Tasks
+            {rootTodos.length > 0 && (
+              <span className={`text-sm font-normal ml-2 ${isDark ? 'text-void-400' : 'text-void-500'}`}>
+                {rootTodos.filter(t => !t.completed).length} remaining
+              </span>
+            )}
+          </h1>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowSettingsModal(true)}
@@ -221,12 +223,7 @@ function App() {
             >
               <Gear size={20} weight="bold" />
             </button>
-            <ThemePicker
-              currentTheme={themeName}
-              themes={themes}
-              onThemeChange={setTheme}
-              isDark={isDark}
-            />
+            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
           </div>
         </div>
 
@@ -243,7 +240,7 @@ function App() {
         <div className={`mx-4 sm:mx-6 h-px ${isDark ? 'bg-void-700' : 'bg-void-200'}`} />
 
         {/* Filter Toggle */}
-        {todos.length > 0 && (
+        {rootTodos.length > 0 && (
           <div className="px-4 sm:px-6 pt-4 pb-2">
             <TodoFilters
               filter={filter}
@@ -251,7 +248,7 @@ function App() {
               categoryFilter={categoryFilter}
               onCategoryFilterChange={setCategoryFilter}
               todayCount={todayTodos.filter(t => !t.completed).length}
-              allCount={todos.filter(t => !t.completed).length}
+              laterCount={laterTodos.filter(t => !t.completed).length}
               isDark={isDark}
               categories={categories}
               getCategoryColor={getCategoryColor}
@@ -265,7 +262,7 @@ function App() {
             <EmptyState
               isDark={isDark}
               hasCompletedTasks={hasEverHadTasks}
-              isTodayView={filter === 'today' && todos.length > 0}
+              isTodayView={filter === 'today' && rootTodos.length > 0}
             />
           ) : (
             <DndContext
@@ -290,6 +287,11 @@ function App() {
                       isNew={todo.id === newTodoId}
                       categories={categories}
                       getCategoryColor={getCategoryColor}
+                      subtasks={getSubtasks(todo.id)}
+                      onAddSubtask={addSubtask}
+                      onToggleSubtask={toggleSubtask}
+                      onUpdateSubtask={updateTodo}
+                      onDeleteSubtask={deleteSubtask}
                     />
                   ))}
                 </ul>
@@ -311,11 +313,11 @@ function App() {
             }
           `}
         >
-          {todos.length > 0 ? (
-            <span>{todos.filter(t => t.completed).length} of {todos.length} completed</span>
+          {rootTodos.length > 0 ? (
+            <span>{rootTodos.filter(t => t.completed).length} of {rootTodos.length} completed</span>
           ) : null}
           {stats.totalCompleted > 0 && (
-            <span className={todos.length > 0 ? ' · ' : ''}>
+            <span className={rootTodos.length > 0 ? ' · ' : ''}>
               {stats.totalCompleted.toLocaleString()} task{stats.totalCompleted !== 1 ? 's' : ''} all time
               {stats.streak > 1 && (
                 <span className={isDark ? 'text-ember-500' : 'text-ember-600'}>
@@ -324,7 +326,7 @@ function App() {
               )}
             </span>
           )}
-          {stats.totalCompleted === 0 && todos.length === 0 && (
+          {stats.totalCompleted === 0 && rootTodos.length === 0 && (
             <span>Complete tasks to track progress</span>
           )}
         </button>

@@ -36,83 +36,6 @@
   --letter-spacing-tight: -0.025em;
 }
 
-/* ===========================================
-   THEME DEFINITIONS
-   =========================================== */
-
-/* Ember Theme (default dark) */
-body.theme-ember {
-  --theme-bg: #0a0a0a;
-  --theme-card: #141414;
-  --theme-border: #262626;
-  --theme-accent: #f59e0b;
-  --theme-accent-light: #fbbf24;
-  --theme-accent-dark: #d97706;
-  --theme-glow: rgba(245, 158, 11, 0.15);
-}
-
-/* Forest Theme (dark green) */
-body.theme-forest {
-  --theme-bg: #0f1a0f;
-  --theme-card: #1a2f1a;
-  --theme-border: #2d4a2d;
-  --theme-accent: #4ade80;
-  --theme-accent-light: #86efac;
-  --theme-accent-dark: #22c55e;
-  --theme-glow: rgba(74, 222, 128, 0.15);
-}
-
-body.theme-forest.dark {
-  --color-void-900: #0f1a0f;
-  --color-void-800: #1a2f1a;
-  --color-void-700: #243d24;
-  --color-void-600: #2d4a2d;
-  --color-ember-500: #4ade80;
-  --color-ember-400: #86efac;
-  --color-ember-600: #22c55e;
-  --color-ember-glow: rgba(74, 222, 128, 0.15);
-}
-
-/* Ocean Theme (dark blue) */
-body.theme-ocean {
-  --theme-bg: #0f1a2a;
-  --theme-card: #1a2a3a;
-  --theme-border: #2a4a6a;
-  --theme-accent: #38bdf8;
-  --theme-accent-light: #7dd3fc;
-  --theme-accent-dark: #0ea5e9;
-  --theme-glow: rgba(56, 189, 248, 0.15);
-}
-
-body.theme-ocean.dark {
-  --color-void-900: #0f1a2a;
-  --color-void-800: #1a2a3a;
-  --color-void-700: #234060;
-  --color-void-600: #2a4a6a;
-  --color-ember-500: #38bdf8;
-  --color-ember-400: #7dd3fc;
-  --color-ember-600: #0ea5e9;
-  --color-ember-glow: rgba(56, 189, 248, 0.15);
-}
-
-/* Sunset Theme (light warm) */
-body.theme-sunset {
-  --theme-bg: #fff5f0;
-  --theme-card: #ffffff;
-  --theme-border: #fecaca;
-  --theme-accent: #e07050;
-  --theme-accent-light: #f59e8b;
-  --theme-accent-dark: #c2543a;
-  --theme-glow: rgba(224, 112, 80, 0.15);
-}
-
-body.theme-sunset {
-  --color-void-50: #fff5f0;
-  --color-ember-500: #e07050;
-  --color-ember-400: #f59e8b;
-  --color-ember-600: #c2543a;
-  --color-ember-glow: rgba(224, 112, 80, 0.15);
-}
 
 /* ===========================================
    BASE STYLES
@@ -291,17 +214,6 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   }
 }
 
-/* Theme picker dropdown */
-@keyframes theme-picker-enter {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
 
 /* Filter tab underline slide */
 @keyframes filter-underline {
@@ -362,10 +274,6 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   animation: modal-content 0.25s ease-out forwards;
 }
 
-/* Theme picker dropdown animation */
-.theme-picker-enter {
-  animation: theme-picker-enter 0.15s ease-out forwards;
-}
 
 /* Empty state icon subtle animation */
 @keyframes gentle-float {
@@ -436,7 +344,6 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   .todo-item-exit,
   .modal-backdrop,
   .modal-content,
-  .theme-picker-enter,
   .empty-state-icon,
   .confetti-particle {
     transition-duration: 0.01ms !important;

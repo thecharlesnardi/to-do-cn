@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
 
 /**
@@ -14,10 +14,12 @@ export interface Todo {
   text: string;
   completed: boolean;
   isToday?: boolean;
-  todayDate?: string; // Track when it was marked for today
-  category?: string;  // Category tag (e.g., "work", "personal")
-  dueDate?: string;   // ISO date string (YYYY-MM-DD)
+  todayDate?: string;
+  category?: string;
+  dueDate?: string;
   priority?: Priority;
+  parentId?: number;      // Links to parent task (for subtasks)
+  subtaskIds?: number[];  // Array of child task IDs
 }
 
 const STORAGE_KEY = 'todos-react';
@@ -31,17 +33,15 @@ function getToday(): string {
 
 /**
  * Custom hook for managing todos with localStorage persistence
- * Provides CRUD operations: add, toggle, update, delete, reorder
+ * Supports nested subtasks with parent-child relationships
  */
 export function useTodos() {
-  // Initialize from localStorage, clearing old "today" flags
   const [todos, setTodos] = useState<Todo[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed: Todo[] = JSON.parse(saved);
         const today = getToday();
-        // Clear isToday flag for items marked on a previous day
         return parsed.map(todo => {
           if (todo.isToday && todo.todayDate !== today) {
             return { ...todo, isToday: false, todayDate: undefined };
@@ -55,21 +55,16 @@ export function useTodos() {
     return [];
   });
 
-  // Save to localStorage whenever todos change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
   }, [todos]);
 
-  /**
-   * Options for creating a new todo
-   */
   interface AddTodoOptions {
     category?: string;
     dueDate?: string;
     priority?: Priority;
   }
 
-  // Add a new todo with optional category, dueDate, and priority
   const addTodo = (text: string, options?: AddTodoOptions) => {
     if (!text.trim()) return;
 
@@ -77,6 +72,8 @@ export function useTodos() {
       id: Date.now(),
       text: text.trim(),
       completed: false,
+      isToday: true,
+      todayDate: getToday(),
       ...(options?.category && { category: options.category }),
       ...(options?.dueDate && { dueDate: options.dueDate }),
       ...(options?.priority && { priority: options.priority }),
@@ -86,16 +83,143 @@ export function useTodos() {
     return newTodo.id;
   };
 
-  // Toggle completed status
-  const toggleTodo = (id: number) => {
-    setTodos(prev =>
-      prev.map(todo =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
-  };
+  // Add a subtask to a parent todo
+  const addSubtask = useCallback((parentId: number, text: string) => {
+    if (!text.trim()) return;
 
-  // Update todo text
+    const subtaskId = Date.now();
+    const newSubtask: Todo = {
+      id: subtaskId,
+      text: text.trim(),
+      completed: false,
+      parentId,
+    };
+
+    setTodos(prev => {
+      const updated = prev.map(todo => {
+        if (todo.id === parentId) {
+          return {
+            ...todo,
+            subtaskIds: [...(todo.subtaskIds || []), subtaskId],
+          };
+        }
+        return todo;
+      });
+      return [...updated, newSubtask];
+    });
+
+    return subtaskId;
+  }, []);
+
+  // Toggle a subtask with parent sync
+  const toggleSubtask = useCallback((subtaskId: number) => {
+    setTodos(prev => {
+      const subtask = prev.find(t => t.id === subtaskId);
+      if (!subtask || !subtask.parentId) {
+        // Not a subtask, use regular toggle
+        return prev.map(t => t.id === subtaskId ? { ...t, completed: !t.completed } : t);
+      }
+
+      const newCompleted = !subtask.completed;
+      let updated = prev.map(t => t.id === subtaskId ? { ...t, completed: newCompleted } : t);
+
+      // Find parent and its subtasks
+      const parent = updated.find(t => t.id === subtask.parentId);
+      if (parent && parent.subtaskIds) {
+        const subtasks = updated.filter(t => parent.subtaskIds?.includes(t.id));
+
+        if (newCompleted) {
+          // Subtask completed - check if all subtasks are now complete
+          const allComplete = subtasks.every(s => s.completed);
+          if (allComplete) {
+            updated = updated.map(t => t.id === parent.id ? { ...t, completed: true } : t);
+          }
+        } else {
+          // Subtask unchecked - uncheck parent too
+          updated = updated.map(t => t.id === parent.id ? { ...t, completed: false } : t);
+        }
+      }
+
+      return updated;
+    });
+  }, []);
+
+  // Delete a subtask
+  const deleteSubtask = useCallback((subtaskId: number) => {
+    setTodos(prev => {
+      const subtask = prev.find(t => t.id === subtaskId);
+      if (!subtask || !subtask.parentId) {
+        return prev.filter(t => t.id !== subtaskId);
+      }
+
+      // Remove from parent's subtaskIds and delete the subtask
+      return prev
+        .map(t => {
+          if (t.id === subtask.parentId && t.subtaskIds) {
+            return {
+              ...t,
+              subtaskIds: t.subtaskIds.filter(id => id !== subtaskId),
+            };
+          }
+          return t;
+        })
+        .filter(t => t.id !== subtaskId);
+    });
+  }, []);
+
+  // Get subtasks for a parent todo
+  const getSubtasks = useCallback((parentId: number): Todo[] => {
+    const parent = todos.find(t => t.id === parentId);
+    if (!parent || !parent.subtaskIds) return [];
+    return todos.filter(t => parent.subtaskIds?.includes(t.id));
+  }, [todos]);
+
+  // Toggle regular todo with subtask sync
+  const toggleTodo = useCallback((id: number) => {
+    setTodos(prev => {
+      const todo = prev.find(t => t.id === id);
+      if (!todo) return prev;
+
+      // If it's a subtask, use subtask toggle logic
+      if (todo.parentId) {
+        const newCompleted = !todo.completed;
+        let updated = prev.map(t => t.id === id ? { ...t, completed: newCompleted } : t);
+
+        const parent = updated.find(t => t.id === todo.parentId);
+        if (parent && parent.subtaskIds) {
+          const subtasks = updated.filter(t => parent.subtaskIds?.includes(t.id));
+
+          if (newCompleted) {
+            const allComplete = subtasks.every(s => s.completed);
+            if (allComplete) {
+              updated = updated.map(t => t.id === parent.id ? { ...t, completed: true } : t);
+            }
+          } else {
+            updated = updated.map(t => t.id === parent.id ? { ...t, completed: false } : t);
+          }
+        }
+
+        return updated;
+      }
+
+      // Regular todo toggle
+      const newCompleted = !todo.completed;
+      let updated = prev.map(t => t.id === id ? { ...t, completed: newCompleted } : t);
+
+      // If has subtasks, toggle them too
+      if (todo.subtaskIds && todo.subtaskIds.length > 0) {
+        updated = updated.map(t => {
+          if (todo.subtaskIds?.includes(t.id)) {
+            return { ...t, completed: newCompleted };
+          }
+          return t;
+        });
+      }
+
+      return updated;
+    });
+  }, []);
+
   const updateTodo = (id: number, newText: string) => {
     if (!newText.trim()) return;
 
@@ -106,7 +230,6 @@ export function useTodos() {
     );
   };
 
-  // Update todo fields (category, dueDate, priority)
   const updateTodoFields = (id: number, fields: Partial<Pick<Todo, 'category' | 'dueDate' | 'priority'>>) => {
     setTodos(prev =>
       prev.map(todo =>
@@ -115,12 +238,33 @@ export function useTodos() {
     );
   };
 
-  // Delete a todo
-  const deleteTodo = (id: number) => {
-    setTodos(prev => prev.filter(todo => todo.id !== id));
-  };
+  // Delete a todo and its subtasks
+  const deleteTodo = useCallback((id: number) => {
+    setTodos(prev => {
+      const todo = prev.find(t => t.id === id);
+      if (!todo) return prev;
 
-  // Reorder todos (for drag and drop)
+      // If it's a subtask, use subtask delete
+      if (todo.parentId) {
+        return prev
+          .map(t => {
+            if (t.id === todo.parentId && t.subtaskIds) {
+              return {
+                ...t,
+                subtaskIds: t.subtaskIds.filter(sid => sid !== id),
+              };
+            }
+            return t;
+          })
+          .filter(t => t.id !== id);
+      }
+
+      // Delete todo and all its subtasks
+      const subtaskIds = todo.subtaskIds || [];
+      return prev.filter(t => t.id !== id && !subtaskIds.includes(t.id));
+    });
+  }, []);
+
   const reorderTodos = (activeId: number, overId: number) => {
     setTodos(prev => {
       const oldIndex = prev.findIndex(todo => todo.id === activeId);
@@ -129,7 +273,6 @@ export function useTodos() {
     });
   };
 
-  // Toggle "today" flag for a todo
   const toggleToday = (id: number) => {
     const today = getToday();
     setTodos(prev =>
@@ -145,9 +288,12 @@ export function useTodos() {
     );
   };
 
-  // Clear all completed todos
   const clearCompleted = () => {
     setTodos(prev => prev.filter(todo => !todo.completed));
+  };
+
+  const clearAllTodos = () => {
+    setTodos([]);
   };
 
   return {
@@ -160,5 +306,10 @@ export function useTodos() {
     reorderTodos,
     toggleToday,
     clearCompleted,
+    clearAllTodos,
+    addSubtask,
+    toggleSubtask,
+    deleteSubtask,
+    getSubtasks,
   };
 }
