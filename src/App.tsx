@@ -16,10 +16,11 @@ import {
 import { Gear } from '@phosphor-icons/react';
 import { useTheme } from './hooks/useTheme';
 import { useTodos } from './hooks/useTodos';
+import { useCategories } from './hooks/useCategories';
 import { useStats } from './hooks/useStats';
 import { useSettings } from './hooks/useSettings';
 import { useSound, triggerHaptic } from './hooks/useSound';
-import { ThemeToggle } from './components/ThemeToggle';
+import { ThemePicker } from './components/ThemePicker';
 import { TodoInput } from './components/TodoInput';
 import { TodoItem } from './components/TodoItem';
 import { TodoFilters } from './components/TodoFilters';
@@ -29,8 +30,9 @@ import { SettingsModal } from './components/SettingsModal';
 import { Confetti } from './components/Confetti';
 
 function App() {
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, themeName, setTheme, themes } = useTheme();
   const { todos, addTodo, toggleTodo, updateTodo, deleteTodo, reorderTodos, toggleToday, clearCompleted } = useTodos();
+  const { categories, getCategoryColor } = useCategories();
   const { stats, completedToday, completedThisWeek, recordCompletion, justHitMilestone, clearMilestone, resetStats } = useStats();
   const { settings, toggleSound } = useSettings();
   const { playComplete } = useSound(settings.soundEnabled);
@@ -40,6 +42,7 @@ function App() {
     const saved = localStorage.getItem('todo-filter');
     return (saved === 'all' || saved === 'today') ? saved : 'today';
   });
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [hasEverHadTasks, setHasEverHadTasks] = useState(() => {
     const saved = localStorage.getItem('todos-react');
     if (saved) {
@@ -74,7 +77,13 @@ function App() {
 
   // Compute filtered and display todos
   const todayTodos = todos.filter(t => t.isToday);
-  const filteredTodos = filter === 'today' ? todayTodos : todos;
+
+  // Apply both view filter and category filter
+  let filteredTodos = filter === 'today' ? todayTodos : todos;
+  if (categoryFilter) {
+    filteredTodos = filteredTodos.filter(t => t.category === categoryFilter);
+  }
+
   const completedTodos = todos.filter(t => t.completed);
 
   // Format today's date for display
@@ -133,7 +142,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen flex items-start justify-center px-4 py-12 sm:py-16">
+    <div className="min-h-screen flex items-start justify-center px-4 py-8 sm:py-12 md:py-16">
       {/* Confetti for milestones */}
       <Confetti isActive={justHitMilestone !== null} onComplete={clearMilestone} />
 
@@ -175,11 +184,11 @@ function App() {
         `}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 pb-0">
+        <div className="flex items-center justify-between p-4 sm:p-6 pb-0">
           <div>
             <h1
               className={`
-                text-2xl font-semibold tracking-tight
+                text-xl sm:text-2xl font-semibold tracking-tight
                 ${isDark ? 'text-void-50' : 'text-void-900'}
               `}
             >
@@ -212,27 +221,40 @@ function App() {
             >
               <Gear size={20} weight="bold" />
             </button>
-            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+            <ThemePicker
+              currentTheme={themeName}
+              themes={themes}
+              onThemeChange={setTheme}
+              isDark={isDark}
+            />
           </div>
         </div>
 
         {/* Input */}
-        <div className="p-6">
-          <TodoInput onAdd={addTodo} isDark={isDark} />
+        <div className="p-4 sm:p-6">
+          <TodoInput
+            onAdd={addTodo}
+            isDark={isDark}
+            categories={categories}
+          />
         </div>
 
         {/* Divider */}
-        <div className={`mx-6 h-px ${isDark ? 'bg-void-700' : 'bg-void-200'}`} />
+        <div className={`mx-4 sm:mx-6 h-px ${isDark ? 'bg-void-700' : 'bg-void-200'}`} />
 
         {/* Filter Toggle */}
         {todos.length > 0 && (
-          <div className="px-6 pt-4 pb-2">
+          <div className="px-4 sm:px-6 pt-4 pb-2">
             <TodoFilters
               filter={filter}
               onFilterChange={setFilter}
+              categoryFilter={categoryFilter}
+              onCategoryFilterChange={setCategoryFilter}
               todayCount={todayTodos.filter(t => !t.completed).length}
               allCount={todos.filter(t => !t.completed).length}
               isDark={isDark}
+              categories={categories}
+              getCategoryColor={getCategoryColor}
             />
           </div>
         )}
@@ -266,6 +288,8 @@ function App() {
                       onDelete={deleteTodo}
                       isDark={isDark}
                       isNew={todo.id === newTodoId}
+                      categories={categories}
+                      getCategoryColor={getCategoryColor}
                     />
                   ))}
                 </ul>
@@ -278,7 +302,7 @@ function App() {
         <button
           onClick={() => setShowStatsModal(true)}
           className={`
-            w-full px-6 py-4 text-xs text-center
+            w-full px-4 sm:px-6 py-4 text-xs text-center
             border-t cursor-pointer
             transition-colors
             ${isDark
@@ -295,7 +319,7 @@ function App() {
               {stats.totalCompleted.toLocaleString()} task{stats.totalCompleted !== 1 ? 's' : ''} all time
               {stats.streak > 1 && (
                 <span className={isDark ? 'text-ember-500' : 'text-ember-600'}>
-                  {' '} · {stats.streak} day streak 🔥
+                  {' '} · {stats.streak} day streak
                 </span>
               )}
             </span>

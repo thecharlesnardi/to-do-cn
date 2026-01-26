@@ -29,13 +29,13 @@ export function SettingsModal({
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className={`absolute inset-0 ${isDark ? 'bg-black/70' : 'bg-black/50'}`} />
+      <div className={`absolute inset-0 modal-backdrop ${isDark ? 'bg-black/70' : 'bg-black/50'}`} />
 
       {/* Modal */}
       <div
         onClick={(e) => e.stopPropagation()}
         className={`
-          relative w-full max-w-sm rounded-2xl p-6
+          relative w-full max-w-sm rounded-2xl p-6 modal-content
           ${isDark
             ? 'bg-void-800 border border-void-700'
             : 'bg-white border border-void-200'

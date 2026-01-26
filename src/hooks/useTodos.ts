@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
 
 /**
+ * Priority levels for todos
+ */
+export type Priority = 'low' | 'medium' | 'high';
+
+/**
  * Todo item type definition
  */
 export interface Todo {
@@ -10,6 +15,9 @@ export interface Todo {
   completed: boolean;
   isToday?: boolean;
   todayDate?: string; // Track when it was marked for today
+  category?: string;  // Category tag (e.g., "work", "personal")
+  dueDate?: string;   // ISO date string (YYYY-MM-DD)
+  priority?: Priority;
 }
 
 const STORAGE_KEY = 'todos-react';
@@ -52,17 +60,30 @@ export function useTodos() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
   }, [todos]);
 
-  // Add a new todo
-  const addTodo = (text: string) => {
+  /**
+   * Options for creating a new todo
+   */
+  interface AddTodoOptions {
+    category?: string;
+    dueDate?: string;
+    priority?: Priority;
+  }
+
+  // Add a new todo with optional category, dueDate, and priority
+  const addTodo = (text: string, options?: AddTodoOptions) => {
     if (!text.trim()) return;
 
     const newTodo: Todo = {
       id: Date.now(),
       text: text.trim(),
       completed: false,
+      ...(options?.category && { category: options.category }),
+      ...(options?.dueDate && { dueDate: options.dueDate }),
+      ...(options?.priority && { priority: options.priority }),
     };
 
     setTodos(prev => [...prev, newTodo]);
+    return newTodo.id;
   };
 
   // Toggle completed status
@@ -81,6 +102,15 @@ export function useTodos() {
     setTodos(prev =>
       prev.map(todo =>
         todo.id === id ? { ...todo, text: newText.trim() } : todo
+      )
+    );
+  };
+
+  // Update todo fields (category, dueDate, priority)
+  const updateTodoFields = (id: number, fields: Partial<Pick<Todo, 'category' | 'dueDate' | 'priority'>>) => {
+    setTodos(prev =>
+      prev.map(todo =>
+        todo.id === id ? { ...todo, ...fields } : todo
       )
     );
   };
@@ -125,6 +155,7 @@ export function useTodos() {
     addTodo,
     toggleTodo,
     updateTodo,
+    updateTodoFields,
     deleteTodo,
     reorderTodos,
     toggleToday,

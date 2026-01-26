@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 /*
-  Space-Futurism Design System
-  Near-black dark mode with warm amber accents
-  Subtle texture, refined minimalism
+  Multi-Theme Design System
+  Supports: Ember (default), Forest, Ocean, Sunset
+  Near-black dark modes with distinct accent colors
 */
 
 @theme {
-  /* Near-black dark mode palette */
+  /* Base void palette (grays) - used across all themes */
   --color-void-950: #050505;
   --color-void-900: #0a0a0a;
   --color-void-800: #141414;
@@ -20,7 +20,7 @@
   --color-void-100: #d4d4d4;
   --color-void-50: #fafafa;
 
-  /* Warm amber accent */
+  /* Ember theme (default) - Warm amber */
   --color-ember-500: #f59e0b;
   --color-ember-400: #fbbf24;
   --color-ember-600: #d97706;
@@ -36,7 +36,88 @@
   --letter-spacing-tight: -0.025em;
 }
 
-/* Base styles */
+/* ===========================================
+   THEME DEFINITIONS
+   =========================================== */
+
+/* Ember Theme (default dark) */
+body.theme-ember {
+  --theme-bg: #0a0a0a;
+  --theme-card: #141414;
+  --theme-border: #262626;
+  --theme-accent: #f59e0b;
+  --theme-accent-light: #fbbf24;
+  --theme-accent-dark: #d97706;
+  --theme-glow: rgba(245, 158, 11, 0.15);
+}
+
+/* Forest Theme (dark green) */
+body.theme-forest {
+  --theme-bg: #0f1a0f;
+  --theme-card: #1a2f1a;
+  --theme-border: #2d4a2d;
+  --theme-accent: #4ade80;
+  --theme-accent-light: #86efac;
+  --theme-accent-dark: #22c55e;
+  --theme-glow: rgba(74, 222, 128, 0.15);
+}
+
+body.theme-forest.dark {
+  --color-void-900: #0f1a0f;
+  --color-void-800: #1a2f1a;
+  --color-void-700: #243d24;
+  --color-void-600: #2d4a2d;
+  --color-ember-500: #4ade80;
+  --color-ember-400: #86efac;
+  --color-ember-600: #22c55e;
+  --color-ember-glow: rgba(74, 222, 128, 0.15);
+}
+
+/* Ocean Theme (dark blue) */
+body.theme-ocean {
+  --theme-bg: #0f1a2a;
+  --theme-card: #1a2a3a;
+  --theme-border: #2a4a6a;
+  --theme-accent: #38bdf8;
+  --theme-accent-light: #7dd3fc;
+  --theme-accent-dark: #0ea5e9;
+  --theme-glow: rgba(56, 189, 248, 0.15);
+}
+
+body.theme-ocean.dark {
+  --color-void-900: #0f1a2a;
+  --color-void-800: #1a2a3a;
+  --color-void-700: #234060;
+  --color-void-600: #2a4a6a;
+  --color-ember-500: #38bdf8;
+  --color-ember-400: #7dd3fc;
+  --color-ember-600: #0ea5e9;
+  --color-ember-glow: rgba(56, 189, 248, 0.15);
+}
+
+/* Sunset Theme (light warm) */
+body.theme-sunset {
+  --theme-bg: #fff5f0;
+  --theme-card: #ffffff;
+  --theme-border: #fecaca;
+  --theme-accent: #e07050;
+  --theme-accent-light: #f59e8b;
+  --theme-accent-dark: #c2543a;
+  --theme-glow: rgba(224, 112, 80, 0.15);
+}
+
+body.theme-sunset {
+  --color-void-50: #fff5f0;
+  --color-ember-500: #e07050;
+  --color-ember-400: #f59e8b;
+  --color-ember-600: #c2543a;
+  --color-ember-glow: rgba(224, 112, 80, 0.15);
+}
+
+/* ===========================================
+   BASE STYLES
+   =========================================== */
+
 html {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -46,7 +127,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Light mode (default) */
@@ -109,6 +190,16 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   background: var(--color-void-500);
 }
 
+/* Hide scrollbar for category filters */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* ===========================================
    ANIMATIONS
    =========================================== */
@@ -154,15 +245,81 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   }
 }
 
-/* New task entry animation */
+/* New task entry animation - slide in from left */
 @keyframes task-enter {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateX(-12px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
+  }
+}
+
+/* Task delete - slide out and fade */
+@keyframes task-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+/* Modal backdrop fade */
+@keyframes modal-backdrop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal content slide up + scale */
+@keyframes modal-content {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Theme picker dropdown */
+@keyframes theme-picker-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Filter tab underline slide */
+@keyframes filter-underline {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Subtle pulse for priority/category changes */
+@keyframes subtle-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
   }
 }
 
@@ -189,6 +346,25 @@ body.dark ::-webkit-scrollbar-thumb:hover {
 /* Task item entry animation */
 .todo-item-enter {
   animation: task-enter 0.25s ease-out forwards;
+}
+
+/* Task item exit animation */
+.todo-item-exit {
+  animation: task-exit 0.2s ease-out forwards;
+}
+
+/* Modal animations */
+.modal-backdrop {
+  animation: modal-backdrop 0.2s ease-out forwards;
+}
+
+.modal-content {
+  animation: modal-content 0.25s ease-out forwards;
+}
+
+/* Theme picker dropdown animation */
+.theme-picker-enter {
+  animation: theme-picker-enter 0.15s ease-out forwards;
 }
 
 /* Empty state icon subtle animation */
@@ -221,13 +397,48 @@ body.dark ::-webkit-scrollbar-thumb:hover {
   animation: confetti-fall 2s ease-out forwards;
 }
 
+/* ===========================================
+   MOBILE RESPONSIVE
+   =========================================== */
+
+/* Touch-friendly targets */
+@media (max-width: 640px) {
+  /* Larger touch targets on mobile */
+  button,
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Full-width inputs on mobile */
+  input[type="text"],
+  input[type="date"],
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Adjust padding for mobile */
+  .mobile-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,
   .checkmark-svg,
   .checkbox-animate,
   .todo-item-complete,
-  .todo-item-enter {
+  .todo-item-enter,
+  .todo-item-exit,
+  .modal-backdrop,
+  .modal-content,
+  .theme-picker-enter,
+  .empty-state-icon,
+  .confetti-particle {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation: none !important;
