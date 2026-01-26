@@ -59,8 +59,12 @@ export function SubtaskItem({
       className={`
         group flex items-center gap-2 px-2 py-2 ml-8 rounded-lg
         transition-all duration-200
+        border
         ${justCompleted ? 'todo-item-complete' : ''}
-        ${isDark ? 'hover:bg-void-800/30' : 'hover:bg-void-100/30'}
+        ${isDark
+          ? 'bg-void-800/20 border-void-700/30 hover:bg-void-800/40'
+          : 'bg-void-50/50 border-void-200 hover:bg-void-100/50'
+        }
       `}
     >
       {/* Checkbox */}

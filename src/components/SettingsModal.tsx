@@ -1,4 +1,4 @@
-import { X, SpeakerHigh, SpeakerSlash, Trash, ArrowCounterClockwise, Clock, Globe } from '@phosphor-icons/react';
+import { X, SpeakerHigh, SpeakerSlash, Trash, ArrowCounterClockwise, Clock, Globe, Sun, Moon } from '@phosphor-icons/react';
 
 // Common timezones for dropdown
 const TIMEZONES = [
@@ -20,6 +20,7 @@ interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   isDark: boolean;
+  onThemeToggle: () => void;
   soundEnabled: boolean;
   onSoundToggle: () => void;
   timezone: string;
@@ -37,6 +38,7 @@ export function SettingsModal({
   isOpen,
   onClose,
   isDark,
+  onThemeToggle,
   soundEnabled,
   onSoundToggle,
   timezone,
@@ -100,6 +102,48 @@ export function SettingsModal({
 
         {/* Settings List */}
         <div className="space-y-4">
+          {/* Dark Mode Toggle */}
+          <div
+            className={`
+              flex items-center justify-between p-4 rounded-xl
+              ${isDark ? 'bg-void-700/50' : 'bg-void-50'}
+            `}
+          >
+            <div className="flex items-center gap-3">
+              {isDark ? (
+                <Moon size={24} className="text-ember-500" weight="fill" />
+              ) : (
+                <Sun size={24} className="text-ember-600" weight="fill" />
+              )}
+              <div>
+                <p className={`font-medium ${isDark ? 'text-void-100' : 'text-void-800'}`}>
+                  Dark Mode
+                </p>
+                <p className={`text-xs ${isDark ? 'text-void-500' : 'text-void-400'}`}>
+                  {isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onThemeToggle}
+              className={`
+                relative w-12 h-6 rounded-full transition-colors cursor-pointer
+                ${isDark
+                  ? 'bg-ember-500'
+                  : 'bg-void-300'
+                }
+              `}
+            >
+              <span
+                className={`
+                  absolute top-1 w-4 h-4 rounded-full bg-white
+                  transition-transform
+                  ${isDark ? 'left-7' : 'left-1'}
+                `}
+              />
+            </button>
+          </div>
+
           {/* Sound Toggle */}
           <div
             className={`

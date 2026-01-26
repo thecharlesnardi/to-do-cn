@@ -20,7 +20,6 @@ import { useCategories } from './hooks/useCategories';
 import { useStats } from './hooks/useStats';
 import { useSettings } from './hooks/useSettings';
 import { useSound, triggerHaptic } from './hooks/useSound';
-import { ThemeToggle } from './components/ThemeToggle';
 import { TodoInput } from './components/TodoInput';
 import { TodoItem } from './components/TodoItem';
 import { TodoFilters } from './components/TodoFilters';
@@ -161,6 +160,7 @@ function App() {
         isOpen={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
         isDark={isDark}
+        onThemeToggle={toggleTheme}
         soundEnabled={settings.soundEnabled}
         onSoundToggle={toggleSound}
         timezone={settings.timezone}
@@ -177,7 +177,7 @@ function App() {
       {/* Main Container */}
       <div
         className={`
-          w-full max-w-lg
+          relative w-full max-w-lg
           rounded-2xl
           border
           transition-all duration-300
@@ -187,43 +187,32 @@ function App() {
           }
         `}
       >
-        {/* Date/Time Header */}
-        <DateTimeHeader
-          timezone={settings.timezone}
-          use24Hour={settings.use24Hour}
-          isDark={isDark}
-        />
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 pb-0">
-          <h1
-            className={`
-              text-xl sm:text-2xl font-semibold tracking-tight
-              ${isDark ? 'text-void-50' : 'text-void-900'}
-            `}
-          >
-            Tasks
+        {/* Two-Column Header */}
+        <div className="flex items-start px-4 sm:px-6 pt-4 pb-2">
+          {/* Left Column - Title and Count (1/3 width) */}
+          <div className="w-1/3 flex flex-col justify-center">
+            <h1
+              className={`
+                text-2xl sm:text-3xl font-semibold tracking-tight
+                ${isDark ? 'text-void-50' : 'text-void-900'}
+              `}
+            >
+              Tasks
+            </h1>
             {rootTodos.length > 0 && (
-              <span className={`text-sm font-normal ml-2 ${isDark ? 'text-void-400' : 'text-void-500'}`}>
+              <span className={`text-sm mt-1 ${isDark ? 'text-void-400' : 'text-void-500'}`}>
                 {rootTodos.filter(t => !t.completed).length} remaining
               </span>
             )}
-          </h1>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowSettingsModal(true)}
-              aria-label="Settings"
-              className={`
-                p-2 rounded-lg transition-colors cursor-pointer
-                ${isDark
-                  ? 'text-void-400 hover:text-void-200 hover:bg-void-700'
-                  : 'text-void-500 hover:text-void-700 hover:bg-void-100'
-                }
-              `}
-            >
-              <Gear size={20} weight="bold" />
-            </button>
-            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+          </div>
+
+          {/* Right Column - Clock and Date (2/3 width) */}
+          <div className="w-2/3">
+            <DateTimeHeader
+              timezone={settings.timezone}
+              use24Hour={settings.use24Hour}
+              isDark={isDark}
+            />
           </div>
         </div>
 
@@ -329,6 +318,23 @@ function App() {
           {stats.totalCompleted === 0 && rootTodos.length === 0 && (
             <span>Complete tasks to track progress</span>
           )}
+        </button>
+
+        {/* Floating Settings Button - Bottom Right */}
+        <button
+          onClick={() => setShowSettingsModal(true)}
+          aria-label="Settings"
+          className={`
+            absolute bottom-4 right-4 p-2.5 rounded-full
+            transition-all duration-200 cursor-pointer
+            shadow-md
+            ${isDark
+              ? 'bg-void-700 text-void-400 hover:text-void-200 hover:bg-void-600'
+              : 'bg-void-100 text-void-500 hover:text-void-700 hover:bg-void-200'
+            }
+          `}
+        >
+          <Gear size={20} weight="bold" />
         </button>
       </div>
     </div>

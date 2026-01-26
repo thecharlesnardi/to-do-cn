@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Pencil, Trash, FloppyDisk, X, DotsSixVertical, Star, CalendarBlank, Warning, CaretDown, Plus } from '@phosphor-icons/react';
+import { Pencil, Trash, FloppyDisk, X, DotsSixVertical, CalendarBlank, Warning, CaretDown, Plus } from '@phosphor-icons/react';
 import type { Todo, Priority } from '../hooks/useTodos';
 import type { Category } from '../hooks/useCategories';
 import { SubtaskItem } from './SubtaskItem';
@@ -251,24 +251,31 @@ export function TodoItem({
           )}
         </button>
 
-        {/* Today Star */}
+        {/* Today Indicator - Subtle dot */}
         <button
           onClick={() => onToggleToday(todo.id)}
           aria-label={todo.isToday ? 'Remove from Today' : 'Add to Today'}
           className={`
-            p-1 rounded transition-all duration-200 cursor-pointer
+            flex items-center justify-center w-6 h-6 rounded transition-all duration-200 cursor-pointer
             ${todo.isToday
-              ? isDark
-                ? 'text-ember-500 hover:text-ember-400'
-                : 'text-ember-600 hover:text-ember-500'
-              : isDark
-                ? 'text-void-600 hover:text-ember-500 opacity-0 group-hover:opacity-100'
-                : 'text-void-300 hover:text-ember-600 opacity-0 group-hover:opacity-100'
+              ? ''
+              : 'opacity-0 group-hover:opacity-100'
             }
-            ${todo.isToday ? 'opacity-100' : ''}
           `}
         >
-          <Star size={18} weight={todo.isToday ? 'fill' : 'regular'} />
+          <span
+            className={`
+              rounded-full transition-all duration-200
+              ${todo.isToday
+                ? isDark
+                  ? 'w-2.5 h-2.5 bg-ember-500'
+                  : 'w-2.5 h-2.5 bg-ember-600'
+                : isDark
+                  ? 'w-2 h-2 bg-void-600 hover:bg-ember-500'
+                  : 'w-2 h-2 bg-void-300 hover:bg-ember-600'
+              }
+            `}
+          />
         </button>
 
         {/* Main content */}

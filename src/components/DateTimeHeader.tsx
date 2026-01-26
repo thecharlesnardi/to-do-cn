@@ -49,10 +49,10 @@ export function DateTimeHeader({ timezone, use24Hour, isDark }: DateTimeHeaderPr
   });
 
   return (
-    <div className="text-center py-4">
+    <div className="text-right">
       <div
         className={`
-          text-4xl sm:text-5xl font-bold tracking-tight
+          text-6xl sm:text-7xl font-bold tracking-tight
           tabular-nums
           ${isDark ? 'text-void-50' : 'text-void-900'}
         `}
@@ -62,7 +62,7 @@ export function DateTimeHeader({ timezone, use24Hour, isDark }: DateTimeHeaderPr
       <div
         className={`
           text-sm mt-1
-          ${isDark ? 'text-void-400' : 'text-void-500'}
+          ${isDark ? 'text-ember-500' : 'text-ember-600'}
         `}
       >
         {formattedDate}
