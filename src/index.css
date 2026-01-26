@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+/*
+  Space-Futurism Design System
+  Near-black dark mode with warm amber accents
+  Subtle texture, refined minimalism
+*/
+
+@theme {
+  /* Near-black dark mode palette */
+  --color-void-950: #050505;
+  --color-void-900: #0a0a0a;
+  --color-void-800: #141414;
+  --color-void-700: #1a1a1a;
+  --color-void-600: #262626;
+  --color-void-500: #404040;
+  --color-void-400: #525252;
+  --color-void-300: #737373;
+  --color-void-200: #a3a3a3;
+  --color-void-100: #d4d4d4;
+  --color-void-50: #fafafa;
+
+  /* Warm amber accent */
+  --color-ember-500: #f59e0b;
+  --color-ember-400: #fbbf24;
+  --color-ember-600: #d97706;
+  --color-ember-glow: rgba(245, 158, 11, 0.15);
+  --color-ember-glow-strong: rgba(245, 158, 11, 0.25);
+
+  /* Status colors */
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+
+  /* Typography */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --letter-spacing-tight: -0.025em;
+}
+
+/* Base styles */
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Light mode (default) */
+body {
+  background-color: var(--color-void-50);
+  color: var(--color-void-900);
+}
+
+/* Dark mode */
+body.dark {
+  background-color: var(--color-void-900);
+  color: var(--color-void-100);
+}
+
+/* Noise texture - sits behind UI on background only */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+body.dark::before {
+  opacity: 0.025;
+}
+
+/* Ensure app content sits above the noise texture */
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* Focus ring style */
+*:focus-visible {
+  outline: 2px solid var(--color-ember-500);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar for dark mode */
+body.dark ::-webkit-scrollbar {
+  width: 8px;
+}
+
+body.dark ::-webkit-scrollbar-track {
+  background: var(--color-void-800);
+}
+
+body.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-void-600);
+  border-radius: 4px;
+}
+
+body.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-void-500);
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
