@@ -68,7 +68,7 @@ export function DateTimeHeader({ timezone, use24Hour, isDark }: DateTimeHeaderPr
           {timeDigits}
         </span>
         {period && (
-          <span className="text-xs font-semibold text-anthropic-red">
+          <span className="text-xs font-semibold" style={{ color: '#D97757' }}>
             {period}
           </span>
         )}

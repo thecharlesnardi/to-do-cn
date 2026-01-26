@@ -198,14 +198,14 @@ function App() {
           <div className="w-1/3 flex flex-col justify-center">
             <h1
               className={`
-                text-2xl sm:text-3xl font-semibold tracking-tight
+                text-3xl sm:text-4xl font-semibold tracking-tight
                 ${isDark ? 'text-void-50' : 'text-void-900'}
               `}
             >
               Tasks
             </h1>
             {rootTodos.length > 0 && (
-              <span className={`text-sm mt-1 ${isDark ? 'text-void-400' : 'text-void-500'}`}>
+              <span className="text-sm mt-1 text-anthropic-blue">
                 {rootTodos.filter(t => !t.completed).length} remaining
               </span>
             )}
@@ -294,53 +294,60 @@ function App() {
           )}
         </div>
 
-        {/* Footer - clickable for stats */}
-        <button
-          onClick={() => setShowStatsModal(true)}
+        {/* Footer with stats and settings */}
+        <div
           className={`
-            w-full px-4 sm:px-6 py-4 text-xs text-center
-            border-t cursor-pointer
-            transition-colors rounded-b-2xl
-            ${isDark
-              ? 'border-white/5 text-void-500 hover:text-void-400 hover:bg-white/5'
-              : 'border-void-200/50 text-void-400 hover:text-void-500 hover:bg-black/5'
-            }
+            relative flex items-center justify-center
+            w-full px-4 sm:px-6 py-4 text-xs
+            border-t rounded-b-2xl
+            ${isDark ? 'border-white/5' : 'border-void-200/50'}
           `}
         >
-          {rootTodos.length > 0 ? (
-            <span>{rootTodos.filter(t => t.completed).length} of {rootTodos.length} completed</span>
-          ) : null}
-          {stats.totalCompleted > 0 && (
-            <span className={rootTodos.length > 0 ? ' · ' : ''}>
-              {stats.totalCompleted.toLocaleString()} task{stats.totalCompleted !== 1 ? 's' : ''} all time
-              {stats.streak > 1 && (
-                <span className={isDark ? 'text-ember-500' : 'text-ember-600'}>
-                  {' '} · {stats.streak} day streak
-                </span>
-              )}
-            </span>
-          )}
-          {stats.totalCompleted === 0 && rootTodos.length === 0 && (
-            <span>Complete tasks to track progress</span>
-          )}
-        </button>
+          {/* Stats - clickable */}
+          <button
+            onClick={() => setShowStatsModal(true)}
+            className={`
+              cursor-pointer transition-colors
+              ${isDark
+                ? 'text-void-500 hover:text-void-400'
+                : 'text-void-400 hover:text-void-500'
+              }
+            `}
+          >
+            {rootTodos.length > 0 ? (
+              <span>{rootTodos.filter(t => t.completed).length} of {rootTodos.length} completed</span>
+            ) : null}
+            {stats.totalCompleted > 0 && (
+              <span className={rootTodos.length > 0 ? ' · ' : ''}>
+                {stats.totalCompleted.toLocaleString()} task{stats.totalCompleted !== 1 ? 's' : ''} all time
+                {stats.streak > 1 && (
+                  <span className={isDark ? 'text-ember-500' : 'text-ember-600'}>
+                    {' '} · {stats.streak} day streak
+                  </span>
+                )}
+              </span>
+            )}
+            {stats.totalCompleted === 0 && rootTodos.length === 0 && (
+              <span>Complete tasks to track progress</span>
+            )}
+          </button>
 
-        {/* Floating Settings Button - Bottom Right */}
-        <button
-          onClick={() => setShowSettingsModal(true)}
-          aria-label="Settings"
-          className={`
-            absolute bottom-14 right-4 p-2.5 rounded-full
-            transition-all duration-200 cursor-pointer
-            glass-panel
-            ${isDark
-              ? 'bg-void-800/60 text-void-400 hover:text-void-200 hover:bg-void-700/60 border border-white/10 shadow-lg'
-              : 'bg-white/60 text-void-500 hover:text-void-700 hover:bg-white/80 border border-void-200/50 shadow-lg'
-            }
-          `}
-        >
-          <Gear size={20} weight="bold" />
-        </button>
+          {/* Settings gear - right side */}
+          <button
+            onClick={() => setShowSettingsModal(true)}
+            aria-label="Settings"
+            className={`
+              absolute right-4 p-2 rounded-full
+              transition-all duration-200 cursor-pointer
+              ${isDark
+                ? 'text-void-500 hover:text-void-300 hover:bg-white/5'
+                : 'text-void-400 hover:text-void-600 hover:bg-black/5'
+              }
+            `}
+          >
+            <Gear size={18} weight="bold" />
+          </button>
+        </div>
       </div>
     </div>
   );
