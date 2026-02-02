@@ -56,13 +56,13 @@ export function EmptyState({ isDark, hasCompletedTasks, isTodayView }: EmptyStat
         <div
           className={`
             p-4 rounded-full mb-4
-            ${isDark ? 'bg-ember-500/10' : 'bg-ember-500/5'}
+            ${isDark ? 'bg-success/10' : 'bg-success/5'}
           `}
         >
           <CheckCircle
             size={32}
             weight="duotone"
-            className={`${isDark ? 'text-ember-500' : 'text-ember-600'} empty-state-icon`}
+            className="text-success empty-state-icon"
           />
         </div>
         <p

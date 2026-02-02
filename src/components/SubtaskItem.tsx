@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Pencil, Trash, FloppyDisk, X } from '@phosphor-icons/react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Pencil, Trash, FloppyDisk, X, DotsSixVertical } from '@phosphor-icons/react';
 import type { Todo } from '../hooks/useTodos';
 
 interface SubtaskItemProps {
@@ -14,7 +16,7 @@ interface SubtaskItemProps {
  * Simplified todo row for subtasks
  * - Indented display
  * - Checkbox, text, edit/delete buttons
- * - No drag handle, no today star
+ * - Drag handle for reordering
  */
 export function SubtaskItem({
   subtask,
@@ -27,6 +29,20 @@ export function SubtaskItem({
   const [editText, setEditText] = useState(subtask.text);
   const [justCompleted, setJustCompleted] = useState(false);
   const prevCompletedRef = useRef(subtask.completed);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: subtask.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   useEffect(() => {
     if (subtask.completed && !prevCompletedRef.current) {
@@ -56,17 +72,40 @@ export function SubtaskItem({
 
   return (
     <li
+      ref={setNodeRef}
+      style={style}
       className={`
-        group flex items-center gap-2 px-2 py-2 ml-8 mb-2 rounded-lg
+        group flex items-center gap-2 px-3 py-1.5 rounded-md
         transition-all duration-200
-        border
         ${justCompleted ? 'todo-item-complete' : ''}
-        ${isDark
-          ? 'bg-void-800/20 border-void-700/30 hover:bg-void-800/40'
-          : 'bg-void-50/50 border-void-200 hover:bg-void-100/50'
+        ${isDragging
+          ? isDark
+            ? 'bg-void-700 shadow-lg opacity-90'
+            : 'bg-white shadow-lg opacity-90'
+          : isDark
+            ? 'bg-void-700/50 hover:bg-void-700/70 border-l-2 border-ember-500/30'
+            : 'bg-white/70 hover:bg-white/90 border-l-2 border-ember-600/30'
         }
       `}
     >
+      {/* Drag Handle */}
+      <button
+        {...attributes}
+        {...listeners}
+        aria-label="Drag to reorder"
+        className={`
+          flex-shrink-0 p-0.5 rounded cursor-grab active:cursor-grabbing
+          transition-colors duration-200
+          ${isDark
+            ? 'text-void-600 hover:text-void-400'
+            : 'text-void-300 hover:text-void-500'
+          }
+          ${isDragging ? 'cursor-grabbing' : ''}
+        `}
+      >
+        <DotsSixVertical size={14} weight="bold" />
+      </button>
+
       {/* Checkbox */}
       <button
         onClick={() => onToggle(subtask.id)}
@@ -120,8 +159,8 @@ export function SubtaskItem({
             className={`
               text-sm transition-all duration-200 truncate block
               ${subtask.completed
-                ? 'line-through ' + (isDark ? 'text-void-500' : 'text-void-400')
-                : isDark ? 'text-void-200' : 'text-void-700'
+                ? 'line-through ' + (isDark ? 'text-void-600' : 'text-void-400')
+                : isDark ? 'text-void-300' : 'text-void-600'
               }
             `}
           >
@@ -134,7 +173,7 @@ export function SubtaskItem({
       <div className={`
         flex gap-1
         transition-opacity duration-200
-        ${isEditing ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+        ${isEditing ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'}
       `}>
         {isEditing ? (
           <>

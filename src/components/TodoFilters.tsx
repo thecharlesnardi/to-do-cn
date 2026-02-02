@@ -81,8 +81,8 @@ export function TodoFilters({
             transition-all duration-200 cursor-pointer
             ${filter === 'later'
               ? isDark
-                ? 'bg-void-700 text-ember-500 shadow-sm'
-                : 'bg-white text-ember-600 shadow-sm'
+                ? 'bg-void-700 text-[#4A90D9] shadow-sm'
+                : 'bg-white text-[#3B7BC0] shadow-sm'
               : isDark
                 ? 'text-void-400 hover:text-void-200'
                 : 'text-void-500 hover:text-void-700'

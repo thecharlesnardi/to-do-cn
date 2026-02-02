@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -6,111 +6,53 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-} from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
+} from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { Gear } from '@phosphor-icons/react';
-import { useTheme } from './hooks/useTheme';
-import { useTodos } from './hooks/useTodos';
-import { useCategories } from './hooks/useCategories';
-import { useStats } from './hooks/useStats';
-import { useSettings } from './hooks/useSettings';
-import { useSound, triggerHaptic } from './hooks/useSound';
-import { TodoInput } from './components/TodoInput';
-import { TodoItem } from './components/TodoItem';
-import { TodoFilters } from './components/TodoFilters';
-import { EmptyState } from './components/EmptyState';
-import { StatsModal } from './components/StatsModal';
-import { SettingsModal } from './components/SettingsModal';
-import { DateTimeHeader } from './components/DateTimeHeader';
-import { Confetti } from './components/Confetti';
-import { BackgroundOrbs } from './components/BackgroundOrbs';
+} from '@dnd-kit/sortable'
+import { Gear, SpinnerGap, SignOut } from '@phosphor-icons/react'
+import { useAuth } from './hooks/useAuth'
+import { useTheme } from './hooks/useTheme'
+import { useTodos } from './hooks/useTodos'
+import { useCategories } from './hooks/useCategories'
+import { useStats } from './hooks/useStats'
+import { useSettings } from './hooks/useSettings'
+import { useSound, triggerHaptic } from './hooks/useSound'
+import { Auth } from './components/Auth'
+import { TodoInput } from './components/TodoInput'
+import { TodoItem } from './components/TodoItem'
+import { TodoFilters } from './components/TodoFilters'
+import { EmptyState } from './components/EmptyState'
+import { StatsModal } from './components/StatsModal'
+import { SettingsModal } from './components/SettingsModal'
+import { DateTimeHeader } from './components/DateTimeHeader'
+import { Confetti } from './components/Confetti'
+import { BackgroundOrbs } from './components/BackgroundOrbs'
 
 function App() {
-  const { isDark, toggleTheme } = useTheme();
-  const { todos, addTodo, toggleTodo, updateTodo, deleteTodo, reorderTodos, toggleToday, clearCompleted, clearAllTodos, addSubtask, toggleSubtask, deleteSubtask, getSubtasks } = useTodos();
-  const { categories, getCategoryColor } = useCategories();
-  const { stats, completedToday, completedThisWeek, recordCompletion, justHitMilestone, clearMilestone, resetStats } = useStats();
-  const { settings, toggleSound, setTimezone, toggleTimeFormat } = useSettings();
-  const { playComplete } = useSound(settings.soundEnabled);
+  // Auth state
+  const { user, loading: authLoading, signIn, signUp, signOut, resetPassword } = useAuth()
+  const userId = user?.id
 
-  const [newTodoId, setNewTodoId] = useState<number | null>(null);
-  const [filter, setFilter] = useState<'today' | 'later'>(() => {
-    const saved = localStorage.getItem('todo-filter');
-    return (saved === 'later' || saved === 'today') ? saved : 'today';
-  });
-  const [categoryFilter, setCategoryFilter] = useState<string>('');
-  const [hasEverHadTasks, setHasEverHadTasks] = useState(() => {
-    const saved = localStorage.getItem('todos-react');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return parsed.length > 0 || localStorage.getItem('has-used-todos') === 'true';
-      } catch {
-        return false;
-      }
-    }
-    return localStorage.getItem('has-used-todos') === 'true';
-  });
-  const [showStatsModal, setShowStatsModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const prevTodosLengthRef = useRef(todos.length);
+  // Theme (works without auth)
+  const { isDark, toggleTheme } = useTheme()
 
-  // Wrap toggleTodo to track completions with sound and haptic
-  const handleToggle = (id: number) => {
-    const todo = todos.find(t => t.id === id);
-    if (todo && !todo.completed) {
-      recordCompletion();
-      playComplete();
-      triggerHaptic();
-    }
-    toggleTodo(id);
-  };
+  // These hooks now require userId
+  const { todos, loading: todosLoading, addTodo, toggleTodo, updateTodo, updateTodoFields, deleteTodo, reorderTodos, toggleToday, clearCompleted, clearAllTodos, addSubtask, toggleSubtask, deleteSubtask, getSubtasks, reorderSubtasks } = useTodos(userId)
+  const { categories, getCategoryColor } = useCategories()
+  const { stats, loading: statsLoading, completedToday, completedThisWeek, recordCompletion, justHitMilestone, clearMilestone, resetStats } = useStats(userId)
+  const { settings, loading: settingsLoading, toggleSound, setTimezone, toggleTimeFormat } = useSettings(userId)
+  const { playComplete } = useSound(settings.soundEnabled)
 
-  // Persist filter preference
-  useEffect(() => {
-    localStorage.setItem('todo-filter', filter);
-  }, [filter]);
+  const [filter, setFilter] = useState<'today' | 'later'>('today')
+  const [categoryFilter, setCategoryFilter] = useState<string>('')
+  const [showStatsModal, setShowStatsModal] = useState(false)
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
 
-  // Filter to root todos only (no parentId) for main list
-  const rootTodos = todos.filter(t => !t.parentId);
-
-  // Compute filtered and display todos
-  const todayTodos = rootTodos.filter(t => t.isToday);
-  const laterTodos = rootTodos.filter(t => !t.isToday);
-
-  // Apply both view filter and category filter
-  let filteredTodos = filter === 'today' ? todayTodos : laterTodos;
-  if (categoryFilter) {
-    filteredTodos = filteredTodos.filter(t => t.category === categoryFilter);
-  }
-
-  const completedTodos = todos.filter(t => t.completed);
-
-  // Track when user has added tasks (for empty state context)
-  useEffect(() => {
-    if (todos.length > 0 && !hasEverHadTasks) {
-      setHasEverHadTasks(true);
-      localStorage.setItem('has-used-todos', 'true');
-    }
-  }, [todos.length, hasEverHadTasks]);
-
-  // Track when a new todo is added (length increased)
-  useEffect(() => {
-    if (todos.length > prevTodosLengthRef.current && todos.length > 0) {
-      const lastTodo = todos[todos.length - 1];
-      setNewTodoId(lastTodo.id);
-      const timer = setTimeout(() => setNewTodoId(null), 300);
-      return () => clearTimeout(timer);
-    }
-    prevTodosLengthRef.current = todos.length;
-  }, [todos]);
-
-  // Set up drag sensors
+  // Set up drag sensors (must be before any early returns!)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
@@ -118,29 +60,103 @@ function App() {
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
-  );
+  )
+
+  // Show loading screen while checking auth
+  if (authLoading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-void-950' : 'bg-void-50'}`}>
+        <SpinnerGap size={48} className={`animate-spin ${isDark ? 'text-ember-500' : 'text-ember-600'}`} />
+      </div>
+    )
+  }
+
+  // Show auth screen if not logged in
+  if (!user) {
+    return (
+      <Auth
+        onSignIn={signIn}
+        onSignUp={signUp}
+        onResetPassword={resetPassword}
+        isDark={isDark}
+      />
+    )
+  }
+
+  // Show loading while data loads
+  const isDataLoading = todosLoading || statsLoading || settingsLoading
+  if (isDataLoading) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center gap-4 ${isDark ? 'bg-void-950' : 'bg-void-50'}`}>
+        <SpinnerGap size={48} className={`animate-spin ${isDark ? 'text-ember-500' : 'text-ember-600'}`} />
+        <p className={`text-sm ${isDark ? 'text-void-400' : 'text-void-500'}`}>Loading your tasks...</p>
+      </div>
+    )
+  }
+
+  // Wrap toggleTodo to track completions with sound and haptic
+  const handleToggle = (id: number) => {
+    const todo = todos.find(t => t.id === id)
+    if (todo && !todo.completed) {
+      recordCompletion()
+      playComplete()
+      triggerHaptic()
+    }
+    toggleTodo(id)
+  }
+
+  // Handle category update for quick-select
+  const handleUpdateCategory = (id: number, category: string | undefined) => {
+    updateTodoFields(id, { category })
+  }
+
+  // Handle priority update for quick-select
+  const handleUpdatePriority = (id: number, priority: 'low' | 'medium' | 'high' | undefined) => {
+    updateTodoFields(id, { priority })
+  }
+
+  // Filter to root todos only (no parentId) for main list
+  const rootTodos = todos.filter(t => !t.parentId)
+
+  // Compute filtered and display todos
+  const todayTodos = rootTodos.filter(t => t.isToday)
+  const laterTodos = rootTodos.filter(t => !t.isToday)
+
+  // Apply both view filter and category filter
+  let filteredTodos = filter === 'today' ? todayTodos : laterTodos
+  if (categoryFilter) {
+    filteredTodos = filteredTodos.filter(t => t.category === categoryFilter)
+  }
+
+  const completedTodos = todos.filter(t => t.completed)
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+    const { active, over } = event
     if (over && active.id !== over.id) {
-      reorderTodos(active.id as number, over.id as number);
+      reorderTodos(active.id as number, over.id as number)
     }
-  };
+  }
 
   const handleClearCompleted = () => {
-    clearCompleted();
-    setShowSettingsModal(false);
-  };
+    clearCompleted()
+    setShowSettingsModal(false)
+  }
 
   const handleResetStats = () => {
     if (window.confirm('Are you sure you want to reset all statistics? This cannot be undone.')) {
-      resetStats();
-      setShowSettingsModal(false);
+      resetStats()
+      setShowSettingsModal(false)
     }
-  };
+  }
+
+  const handleSignOut = async () => {
+    if (window.confirm('Sign out of your account?')) {
+      await signOut()
+    }
+  }
 
   return (
-    <div className="min-h-screen flex items-start justify-center px-4 py-8 sm:py-12 md:py-16">
+    <div className="h-screen flex items-center justify-center px-4 py-4 sm:py-8">
       {/* Background Depth Layer - orbs for glass to blur */}
       <BackgroundOrbs isDark={isDark} />
 
@@ -182,6 +198,8 @@ function App() {
       <div
         className={`
           relative w-full max-w-lg
+          max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)]
+          flex flex-col
           rounded-2xl
           border
           glass-panel
@@ -193,7 +211,7 @@ function App() {
         `}
       >
         {/* Two-Column Header */}
-        <div className="flex items-start px-4 sm:px-6 pt-4 pb-2">
+        <div className="flex-shrink-0 flex items-start px-4 sm:px-6 pt-4 pb-2">
           {/* Left Column - Title and Count (1/3 width) */}
           <div className="w-1/3 flex flex-col justify-center">
             <h1
@@ -222,7 +240,7 @@ function App() {
         </div>
 
         {/* Input */}
-        <div className="p-4 sm:p-6">
+        <div className="flex-shrink-0 p-4 sm:p-6">
           <TodoInput
             onAdd={addTodo}
             isDark={isDark}
@@ -231,11 +249,11 @@ function App() {
         </div>
 
         {/* Divider */}
-        <div className={`mx-4 sm:mx-6 h-px ${isDark ? 'bg-white/10' : 'bg-void-300/30'}`} />
+        <div className={`flex-shrink-0 mx-4 sm:mx-6 h-px ${isDark ? 'bg-white/10' : 'bg-void-300/30'}`} />
 
         {/* Filter Toggle */}
         {rootTodos.length > 0 && (
-          <div className="px-4 sm:px-6 pt-4 pb-2">
+          <div className="flex-shrink-0 px-4 sm:px-6 pt-4 pb-2">
             <TodoFilters
               filter={filter}
               onFilterChange={setFilter}
@@ -251,11 +269,11 @@ function App() {
         )}
 
         {/* Todo List */}
-        <div className="p-3">
+        <div className="flex-1 overflow-y-auto min-h-0 p-3">
           {filteredTodos.length === 0 ? (
             <EmptyState
               isDark={isDark}
-              hasCompletedTasks={hasEverHadTasks}
+              hasCompletedTasks={todos.length > 0}
               isTodayView={filter === 'today' && rootTodos.length > 0}
             />
           ) : (
@@ -277,8 +295,10 @@ function App() {
                       onToggleToday={toggleToday}
                       onUpdate={updateTodo}
                       onDelete={deleteTodo}
+                      onUpdateCategory={handleUpdateCategory}
+                      onUpdatePriority={handleUpdatePriority}
                       isDark={isDark}
-                      isNew={todo.id === newTodoId}
+                      isNew={false}
                       categories={categories}
                       getCategoryColor={getCategoryColor}
                       subtasks={getSubtasks(todo.id)}
@@ -286,6 +306,7 @@ function App() {
                       onToggleSubtask={toggleSubtask}
                       onUpdateSubtask={updateTodo}
                       onDeleteSubtask={deleteSubtask}
+                      onReorderSubtasks={reorderSubtasks}
                     />
                   ))}
                 </ul>
@@ -297,12 +318,30 @@ function App() {
         {/* Footer with stats and settings */}
         <div
           className={`
+            flex-shrink-0
             relative flex items-center justify-center
             w-full px-4 sm:px-6 py-4 text-xs
             border-t rounded-b-2xl
             ${isDark ? 'border-white/5' : 'border-void-200/50'}
           `}
         >
+          {/* Sign out button - left side */}
+          <button
+            onClick={handleSignOut}
+            aria-label="Sign out"
+            title="Sign out"
+            className={`
+              absolute left-4 p-2 rounded-full
+              transition-all duration-200 cursor-pointer
+              ${isDark
+                ? 'text-void-500 hover:text-void-300 hover:bg-white/5'
+                : 'text-void-400 hover:text-void-600 hover:bg-black/5'
+              }
+            `}
+          >
+            <SignOut size={18} weight="bold" />
+          </button>
+
           {/* Stats - clickable */}
           <button
             onClick={() => setShowStatsModal(true)}
@@ -350,7 +389,7 @@ function App() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
